@@ -1,0 +1,83 @@
+<script>
+var canvas = document.getElementById("game");
+var ctx = canvas.getContext("2d");
+
+var W = canvas.width;
+var H = canvas.height;
+
+// Player
+var px = 2.5, py = 2.5;
+var angle = 0;
+
+// Map (1 = wall, 0 = empty)
+var map = [
+  [1,1,1,1,1],
+  [1,0,0,0,1],
+  [1,0,0,0,1],
+  [1,0,0,0,1],
+  [1,1,1,1,1]
+];
+
+var tile = 64;
+
+// Touch control (turn + move)
+canvas.addEventListener("touchstart", function(e){
+  var x = e.touches[0].clientX;
+  if(x < window.innerWidth/2){
+    angle -= 0.3; // turn left
+  } else {
+    px += Math.cos(angle) * 0.3;
+    py += Math.sin(angle) * 0.3;
+  }
+});
+
+// Raycasting
+function castRay(a){
+  var sin = Math.sin(a);
+  var cos = Math.cos(a);
+
+  for(var t=0; t<5; t+=0.05){
+    var x = px + cos*t;
+    var y = py + sin*t;
+
+    if(map[Math.floor(y)][Math.floor(x)] == 1){
+      return t;
+    }
+  }
+  return 5;
+}
+
+// Draw
+function draw(){
+
+  // sky
+  ctx.fillStyle = "#111";
+  ctx.fillRect(0,0,W,H/2);
+
+  // floor
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0,H/2,W,H/2);
+
+  for(var i=0;i<W;i+=2){
+
+    var rayAngle = angle + (i/W - 0.5);
+    var dist = castRay(rayAngle);
+
+    var wallHeight = H / (dist + 0.1);
+
+    // shading
+    var shade = 200 - dist*40;
+    ctx.fillStyle = "rgb("+shade+","+shade+","+shade+")";
+
+    ctx.fillRect(i, H/2 - wallHeight/2, 2, wallHeight);
+  }
+}
+
+// Loop
+function loop(){
+  draw();
+  setTimeout(loop, 30);
+}
+
+loop();
+</script>
